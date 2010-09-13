@@ -63,7 +63,7 @@ void DoTurn(const PlanetWars& pw) {
   for (int i = 0; i < my_planets.size(); ++i) {
     const Planet& p = my_planets[i];
     int source = p.PlanetID();
-    int dest = ClosestPlanet( pw, source);
+    int dest = EasiestPlanet( pw, source);
     if (dest != -1) {
       int num_ships = p.NumShips() - Attacked(pw, source);
       if (num_ships > 0)
