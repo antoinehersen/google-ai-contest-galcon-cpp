@@ -1,6 +1,23 @@
 #include <iostream>
 #include "PlanetWars.h"
 
+int  ClosestPlanet(const PlanetWars& pw,
+                   int planet_source_id) {
+  int result = 0;
+  int shortest_distance = 99999;
+  std::vector<Planet> not_my_planets = pw.NotMyPlanets();
+  for (int i = 0; i < not_my_planets.size(); ++i) {
+    const Planet& p = not_my_planets[i];
+
+    int distance = pw.Distance( p.PlanetID(), planet_source_id);
+    if (distance < shortest_distance) {
+      shortest_distance = distance;
+      result = p.PlanetID();
+    }
+  }
+  return result;
+}
+
 // The DoTurn function is where your code goes. The PlanetWars object contains
 // the state of the game, including information about all planets and fleets
 // that currently exist. Inside this function, you issue orders using the
@@ -12,41 +29,15 @@
 // own. Check out the tutorials and articles on the contest website at
 // http://www.ai-contest.com/resources.
 void DoTurn(const PlanetWars& pw) {
-  // (1) If we currently have a fleet in flight, just do nothing.
-  if (pw.MyFleets().size() >= 1) {
-    return;
-  }
-  // (2) Find my strongest planet.
-  int source = -1;
-  double source_score = -999999.0;
-  int source_num_ships = 0;
+
   std::vector<Planet> my_planets = pw.MyPlanets();
   for (int i = 0; i < my_planets.size(); ++i) {
     const Planet& p = my_planets[i];
-    double score = (double)p.NumShips();
-    if (score > source_score) {
-      source_score = score;
-      source = p.PlanetID();
-      source_num_ships = p.NumShips();
-    }
-  }
-  // (3) Find the weakest enemy or neutral planet.
-  int dest = -1;
-  double dest_score = -999999.0;
-  std::vector<Planet> not_my_planets = pw.NotMyPlanets();
-  for (int i = 0; i < not_my_planets.size(); ++i) {
-    const Planet& p = not_my_planets[i];
-    double score = 1.0 / (1 + p.NumShips());
-    if (score > dest_score) {
-      dest_score = score;
-      dest = p.PlanetID();
-    }
-  }
-  // (4) Send half the ships from my strongest planet to the weakest
-  // planet that I do not own.
-  if (source >= 0 && dest >= 0) {
-    int num_ships = source_num_ships / 2;
-    pw.IssueOrder(source, dest, num_ships);
+    int source = p.PlanetID();
+    int dest = ClosestPlanet( pw, source);
+
+    pw.IssueOrder( source, dest, p.NumShips());
+
   }
 }
 
