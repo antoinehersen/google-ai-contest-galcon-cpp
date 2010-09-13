@@ -92,6 +92,22 @@ class Planet {
   // The number of ships on the planet. This is the "population" of the planet.
   int NumShips() const;
 
+  int ExpectedNumShips( int delay) const {
+    int expected = num_ships_incoming;
+
+    if (Owner() == 1) {
+      expected -= NumShips();
+    } else {
+      expected += NumShips();
+    }
+
+    // if (Owner() > 1) {
+    //   expected += GrowthRate() * delay;
+    // }
+
+    return expected;
+  }
+ 
   // Returns the growth rate of the planet. Unless the planet is neutral, the
   // population of the planet grows by this amount each turn. The higher this
   // number is, the faster this planet produces ships.
@@ -100,6 +116,7 @@ class Planet {
   // The position of the planet in space.
   double X() const;
   double Y() const;
+
 
   // Use the following functions to set the properties of this planet. Note
   // that these functions only affect your program's copy of the game state.
@@ -110,12 +127,15 @@ class Planet {
   void AddShips(int amount);
   void RemoveShips(int amount);
 
+  int num_ships_incoming; // + enemy , - self
+
  private:
   int planet_id_;
   int owner_;
   int num_ships_;
   int growth_rate_;
   double x_, y_;
+
 };
 
 class PlanetWars {
@@ -191,6 +211,8 @@ class PlanetWars {
   // Returns the number of ships that the given player has, either located
   // on planets or in flight.
   int NumShips(int player_id) const;
+
+  void CalculateIncoming();
 
   // Sends a message to the game engine letting it know that you're done
   // issuing orders for now.

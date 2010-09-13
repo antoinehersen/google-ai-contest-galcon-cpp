@@ -1,4 +1,5 @@
 #include <iostream>
+#include <algorithm>
 #include "PlanetWars.h"
 
 int  ClosestPlanet(const PlanetWars& pw,
@@ -25,16 +26,20 @@ int  EasiestPlanet(const PlanetWars& pw,
 
   int own_gr = pw.GetPlanet(planet_source_id).GrowthRate();
 
-  std::vector<Planet> not_my_planets = pw.NotMyPlanets();
-  for (int i = 0; i < not_my_planets.size(); ++i) {
-    const Planet& p = not_my_planets[i];
+  std::vector<Planet> all_planets = pw.Planets();
+  for (int i = 0; i < all_planets.size(); ++i) {
+    const Planet& p = all_planets[i];
 
     int distance = pw.Distance( p.PlanetID(), planet_source_id);
-    distance += p.NumShips() / own_gr;
+    int expected_size = p.ExpectedNumShips(distance );
 
-    if (distance < shortest_distance) {
-      shortest_distance = distance;
-      result = p.PlanetID();
+    if (expected_size >= 0) {
+      distance += expected_size / own_gr;
+
+      if (distance < shortest_distance) {
+        shortest_distance = distance;
+        result = p.PlanetID();
+      }
     }
   }
   return result;
@@ -57,7 +62,8 @@ int Attacked(const PlanetWars& pw,
 // The DoTurn function is where your code goes. The PlanetWars object contains
 
 
-void DoTurn(const PlanetWars& pw) {
+void DoTurn(PlanetWars& pw) {
+  pw.CalculateIncoming();
 
   std::vector<Planet> my_planets = pw.MyPlanets();
   for (int i = 0; i < my_planets.size(); ++i) {
@@ -65,9 +71,17 @@ void DoTurn(const PlanetWars& pw) {
     int source = p.PlanetID();
     int dest = EasiestPlanet( pw, source);
     if (dest != -1) {
+
+      const Planet& target_p = pw.GetPlanet( dest);
       int num_ships = p.NumShips() - Attacked(pw, source);
-      if (num_ships > 0)
+
+      if (target_p.Owner() <= 1) {
+        num_ships = std::min( num_ships, target_p.ExpectedNumShips(1) + 1);
+      }
+
+      if (num_ships > 0) {
         pw.IssueOrder( source, dest, num_ships);
+      }
     }
   }
 }

@@ -75,6 +75,7 @@ Planet::Planet(int planet_id,
   growth_rate_ = growth_rate;
   x_ = x;
   y_ = y;
+  num_ships_incoming = 0;
 }
 
 int Planet::PlanetID() const {
@@ -325,6 +326,17 @@ int PlanetWars::ParseGameState(const std::string& s) {
     }
   }
   return 1;
+}
+
+void PlanetWars::CalculateIncoming() {
+  for (int i = 0; i < fleets_.size(); ++i) {
+    const Fleet& f = fleets_[i];
+    if (f.Owner() == 1) {
+      planets_[ f.DestinationPlanet()].num_ships_incoming -= f.NumShips();
+    } else {
+      planets_[ f.DestinationPlanet()].num_ships_incoming += f.NumShips();
+    }
+  }
 }
 
 void PlanetWars::FinishTurn() const {
